@@ -1,0 +1,25 @@
+{
+  "name": "stopwatch",
+  "version": "0.0.1",
+  "description": "Statistics the running time of JavaScript code. (Mainly used for calculate the total running time of a piece of code.)",
+  "main": "index.js",
+  "scripts": {
+    "prepublish": "npm run build && npm run test",
+    "test": "node test/test.js",
+    "dev": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch --no-treeshake -m inline -w",
+    "build": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch --no-treeshake"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zjffun/stopwatch.git"
+  },
+  "author": "",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/zjffun/stopwatch/issues"
+  },
+  "homepage": "https://github.com/zjffun/stopwatch#readme",
+  "devDependencies": {
+    "rollup": "^1.27.5"
+  }
+}
