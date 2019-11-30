@@ -1,4 +1,4 @@
-# stopwatch
+# stopwatch2
 Statistics the run time of JavaScript code. (Mainly used for calculate the total run time of a piece of code.)
 
 # Installation
