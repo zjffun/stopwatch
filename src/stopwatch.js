@@ -3,6 +3,10 @@ var isBrowser = new Function(
   "try {return this===self;}catch(e){ return false;}"
 );
 
+/**
+ * Factory
+ * @param {String} globalName globalName
+ */
 export default function(globalName) {
   let _performance = null,
     _global = null;
@@ -32,6 +36,11 @@ export default function(globalName) {
 
   const stopwatch = (_global[globalName] = {
     [players]: {},
+
+    /**
+     * Start time
+     * @param {String} tag tag
+     */
     start(tag) {
       if (!stopwatch[players][tag]) {
         stopwatch[players][tag] = {
@@ -49,6 +58,11 @@ export default function(globalName) {
       player.start = _performance.now();
       player.state = states.start;
     },
+
+    /**
+     * Pause time
+     * @param {String} tag tag
+     */
     pause(tag) {
       if (!stopwatch[players][tag]) {
         console.error(`"${tag}" does not exist`);
@@ -66,6 +80,11 @@ export default function(globalName) {
 
       return runTime;
     },
+
+    /**
+     * Stop time
+     * @param {String} tag tag
+     */
     stop(tag) {
       if (!stopwatch[players][tag]) {
         console.error(`"${tag}" does not exist`);
@@ -78,15 +97,29 @@ export default function(globalName) {
       console.log(`${tag}: ${player.execTime}ms`);
       return player.execTime;
     },
+
+    /**
+     * Suspends the execution
+     * @param {Number} ms Number of millisecond
+     */
     sleep(ms) {
       const start = Date.now();
       while (Date.now() - start < ms) {}
     },
+
+    /**
+     * List all palyers
+     * @returns {Array} palyers
+     */
     list() {
       const copy = JSON.parse(JSON.stringify(stopwatch[players]));
       console.log(copy);
       return copy;
     },
+
+    /**
+     * Clear all palyers
+     */
     clear() {
       stopwatch[players] = {};
       return true;
