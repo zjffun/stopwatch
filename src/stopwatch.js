@@ -76,7 +76,7 @@ export default function(globalName) {
         runTime = _performance.now() - player.start;
         player.execTime += runTime;
       }
-      player.state === states.pause;
+      player.state = states.pause;
 
       return runTime;
     },
@@ -92,7 +92,7 @@ export default function(globalName) {
       }
 
       const player = stopwatch[players][tag];
-      stopwatch.pause("tag");
+      stopwatch.pause(tag);
       player.state = states.stop;
       console.log(`${tag}: ${player.execTime}ms`);
       return player.execTime;
