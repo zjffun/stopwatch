@@ -4,7 +4,7 @@
   "description": "Statistics the running time of JavaScript code. (Mainly used for calculate the total running time of a piece of code.)",
   "main": "index.js",
   "scripts": {
-    "prepublishOnly": "npm run build && npm run test",
+    "prepublishOnly": "make prepublishOnly",
     "test": "node test/test.js",
     "dev": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch2 --no-treeshake -m inline -w",
     "build": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch2 --no-treeshake"
