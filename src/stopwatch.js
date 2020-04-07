@@ -3,38 +3,39 @@ var isBrowser = new Function(
   "try {return this===self;}catch(e){ return false;}"
 );
 
+let _performance = null,
+  _global = null;
+
+if (isNode()) {
+  _performance = require("perf_hooks").performance;
+  _global = global;
+} else if (isBrowser()) {
+  _performance = performance;
+  _global = self;
+} else {
+  throw Error(`unknow environment!`);
+}
+
+const players = Symbol("players");
+
+const states = {
+  start: Symbol("start"),
+  pause: Symbol("pause"),
+  stop: Symbol("stop"),
+};
+
+const stopwatchs = {};
+
 /**
  * Factory
- * @param {String} globalName globalName
+ * @param {String} groupName groupName
  */
-export default function(globalName) {
-  let _performance = null,
-    _global = null;
-
-  if (isNode()) {
-    _performance = require("perf_hooks").performance;
-    _global = global;
-  } else if (isBrowser()) {
-    _performance = performance;
-    _global = self;
-  } else {
-    console.error(`unknow environment!`);
-    return false;
+export default function (groupName) {
+  if (stopwatchs[groupName]) {
+    return stopwatchs[groupName];
   }
 
-  if (_global[globalName]) {
-    console.error(`"${globalName}" already exist in global!`);
-    return false;
-  }
-
-  const players = Symbol("players");
-  const states = {
-    start: Symbol("start"),
-    pause: Symbol("pause"),
-    stop: Symbol("stop")
-  };
-
-  const stopwatch = (_global[globalName] = {
+  const stopwatch = (stopwatchs[groupName] = {
     [players]: {},
 
     /**
@@ -46,7 +47,7 @@ export default function(globalName) {
         stopwatch[players][tag] = {
           start: _performance.now(),
           execTime: 0,
-          state: states.start
+          state: states.start,
         };
         return;
       }
@@ -123,8 +124,8 @@ export default function(globalName) {
     clear() {
       stopwatch[players] = {};
       return true;
-    }
+    },
   });
 
-  return true;
+  return stopwatch;
 }
