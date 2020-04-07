@@ -1,6 +1,6 @@
 {
   "name": "stopwatch2",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Measure the running time of JavaScript code. (Mainly used for calculate the total running time of a piece of code.)",
   "main": "index.js",
   "scripts": {
