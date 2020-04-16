@@ -1,15 +1,18 @@
-var isNode = new Function("try {return this===global;}catch(e){return false;}");
+var isNode = new Function(
+  "try {return this===global;}catch(e){return false;}"
+)();
 var isBrowser = new Function(
   "try {return this===self;}catch(e){ return false;}"
-);
+)();
 
 let _performance = null,
   _global = null;
 
-if (isNode()) {
-  _performance = require("perf_hooks").performance;
+if (isNode) {
+  // let this require out of webpack control
+  _performance = eval('require("perf_hooks")').performance;
   _global = global;
-} else if (isBrowser()) {
+} else if (isBrowser) {
   _performance = performance;
   _global = self;
 } else {
@@ -22,6 +25,11 @@ const states = {
   start: Symbol("start"),
   pause: Symbol("pause"),
   stop: Symbol("stop"),
+};
+
+const prefix = {
+  start: "sw2-start--",
+  stop: "sw2-stop--",
 };
 
 const stopwatchs = {};
@@ -49,6 +57,11 @@ export default function (groupName) {
           execTime: 0,
           state: states.start,
         };
+
+        if (isBrowser) {
+          _performance.mark(prefix.start + tag);
+        }
+
         return;
       }
       const player = stopwatch[players][tag];
@@ -57,6 +70,7 @@ export default function (groupName) {
         player.execTime = 0;
       }
       player.start = _performance.now();
+
       player.state = states.start;
     },
 
@@ -95,6 +109,12 @@ export default function (groupName) {
       const player = stopwatch[players][tag];
       stopwatch.pause(tag);
       player.state = states.stop;
+
+      if (isBrowser) {
+        _performance.mark(prefix.stop + tag);
+        _performance.measure(tag, prefix.start + tag, prefix.stop + tag);
+      }
+
       console.log(`${tag}: ${player.execTime}ms`);
       return player.execTime;
     },
@@ -123,6 +143,12 @@ export default function (groupName) {
      */
     clear() {
       stopwatch[players] = {};
+
+      if (isBrowser) {
+        _performance.clearMarks();
+        _performance.clearMeasures();
+      }
+
       return true;
     },
   });
