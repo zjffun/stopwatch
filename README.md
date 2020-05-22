@@ -18,57 +18,87 @@ npm install stopwatch2
 
 # Usage
 
-`stopwatch2` exposes a function; simply pass this function the name of your group, and it will return a stopwatch object for you to measure the runtime of code.
+`stopwatch2` exposes a stopwatch object simply call `start`, `pause`, `stop` and etc. methods on it to measure the runtime of code.
 
 ES6 Modules:
 
 ```js
-import sw from "stopwatch2";
-const mysw = sw("group1");
+import sw from 'stopwatch2';
+sw.start('tag1');
+// ...
+sw.stop('tag1');
 ```
 
 CMD:
 
 ```js
-const mysw = require("stopwatch2")("group1");
+const sw = require('stopwatch2');
+sw.start('tag1');
+// ...
+sw.stop('tag1');
+```
 
-/**
- * Register a stopwatch to global
- */
-sw("mysw");
+CDN:
 
-/**
- * start pause stop sleep
- */
-mysw.start("tag");
-var t1 = mysw.pause("tag");
-
-mysw.sleep(500);
-
-mysw.start("tag");
-var t2 = mysw.pause("tag");
-
-var tstop = mysw.stop("tag");
-console.log(t1, t2, tstop);
-
-/**
- * list clear
- */
-mysw.list();
-mysw.clear();
+```html
+<script src=""></script>
+<script>
+  stopwatch2.start('tag1');
+  // ...
+  stopwatch2.stop('tag1');
+</script>
 ```
 
 # Examples
 
-## Statistic piece of code runtime
+## Statistic piece of code total runing time
 
 ```js
+const stopwatch2 = require('stopwatch2');
+
+const arr1 = [];
+const arr2 = [];
+for (let i = 0; i < 1 << 17; i++) {
+  // ...
+  stopwatch2.start('push');
+  arr1.push(i);
+  stopwatch2.pause('push');
+
+  // ...
+  stopwatch2.start('unshift');
+  arr2.unshift(i);
+  stopwatch2.pause('unshift');
+
+  // ...
+}
+
+stopwatch2.show();
+/*
+{
+  "push": {
+    "start": 3220.8307999372482,
+    "execTime": 26.619016647338867
+  },
+  "unshift": {
+    "start": 3220.83109998703,
+    "execTime": 2575.789754152298
+  }
+}
+*/
 ```
 
-## Statistic async function wait and runtime
+# API
 
-```js
-```
+| name                                        | desc                                                                                                                |
+| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `stopwatch2.start(tag: String)`             | Start timing                                                                                                        |
+| `stopwatch2.pause(tag: String)`             | Pause timing. Return the run time from last start                                                                   |
+| `stopwatch2.stop(tag: String)`              | Stop timing. Print and return current timer                                                                         |
+| `stopwatch2.show(tag?: String)`             | Without `tag` param: print and return all timers<br> With `tag` param: print and return the timer with specific tag |
+| `stopwatch2.clear()`                        | Clear all timers                                                                                                    |
+| `stopwatch2.sleep(ms: Number)`              | Sleep with given millisecond                                                                                        |
+| `stopwatch2.registerToGlobal(name: String)` | Register the stopwatch2 to global with the given name                                                               |
+| `stopwatch2.config.print`                   | Whether or not print result when call `stop()` and `show()`, default: true                                          |
 
 # Development
 

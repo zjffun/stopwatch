@@ -1,12 +1,14 @@
-var isNode = new Function(
-  "try {return this===global;}catch(e){return false;}"
+// eslint-disable-next-line no-new-func
+const isNode = new Function(
+  'try{return this===global;}catch(e){return false;}',
 )();
-var isBrowser = new Function(
-  "try {return this===self;}catch(e){ return false;}"
+// eslint-disable-next-line no-new-func
+const isBrowser = new Function(
+  'try{return this===self;}catch(e){return false;}',
 )();
 
-let _performance = null,
-  _global = null;
+let _performance = null;
+let _global = null;
 
 if (isNode) {
   // let this require out of webpack control
@@ -14,144 +16,169 @@ if (isNode) {
   _global = global;
 } else if (isBrowser) {
   _performance = performance;
+  // window.self and self are different
+  // eslint-disable-next-line no-restricted-globals
   _global = self;
 } else {
-  throw Error(`unknow environment!`);
+  throw Error('unknow environment!');
 }
 
-const players = Symbol("players");
+const players = Symbol('players');
 
 const states = {
-  start: Symbol("start"),
-  pause: Symbol("pause"),
-  stop: Symbol("stop"),
+  start: Symbol('start'),
+  pause: Symbol('pause'),
+  stop: Symbol('stop'),
 };
 
 const prefix = {
-  start: "sw2-start--",
-  stop: "sw2-stop--",
+  start: 'sw2-start--',
+  stop: 'sw2-stop--',
 };
 
-const stopwatchs = {};
+const _config = {
+  print: true,
+};
 
-/**
- * Factory
- * @param {String} groupName groupName
- */
-export default function (groupName) {
-  if (stopwatchs[groupName]) {
-    return stopwatchs[groupName];
-  }
+const stopwatch = {
+  [players]: {},
 
-  const stopwatch = (stopwatchs[groupName] = {
-    [players]: {},
-
-    /**
-     * Start time
-     * @param {String} tag tag
-     */
-    start(tag) {
-      if (!stopwatch[players][tag]) {
-        stopwatch[players][tag] = {
-          start: _performance.now(),
-          execTime: 0,
-          state: states.start,
-        };
-
-        if (isBrowser) {
-          _performance.mark(prefix.start + tag);
-        }
-
-        return;
-      }
-      const player = stopwatch[players][tag];
-
-      if (player.state === states.stop) {
-        player.execTime = 0;
-      }
-      player.start = _performance.now();
-
-      player.state = states.start;
-    },
-
-    /**
-     * Pause time
-     * @param {String} tag tag
-     */
-    pause(tag) {
-      if (!stopwatch[players][tag]) {
-        console.error(`"${tag}" does not exist`);
-        return;
-      }
-
-      const player = stopwatch[players][tag];
-
-      let runTime = 0;
-      if (player.state === states.start) {
-        runTime = _performance.now() - player.start;
-        player.execTime += runTime;
-      }
-      player.state = states.pause;
-
-      return runTime;
-    },
-
-    /**
-     * Stop time
-     * @param {String} tag tag
-     */
-    stop(tag) {
-      if (!stopwatch[players][tag]) {
-        console.error(`"${tag}" does not exist`);
-        return;
-      }
-
-      const player = stopwatch[players][tag];
-      stopwatch.pause(tag);
-      player.state = states.stop;
+  /**
+   * Start timing
+   * @param {String} tag tag
+   */
+  start(tag) {
+    if (!stopwatch[players][tag]) {
+      stopwatch[players][tag] = {
+        start: _performance.now(),
+        execTime: 0,
+        state: states.start,
+      };
 
       if (isBrowser) {
-        _performance.mark(prefix.stop + tag);
-        _performance.measure(tag, prefix.start + tag, prefix.stop + tag);
+        _performance.mark(prefix.start + tag);
       }
 
-      console.log(`${tag}: ${player.execTime}ms`);
-      return player.execTime;
-    },
+      return;
+    }
+    const player = stopwatch[players][tag];
 
-    /**
-     * Suspends the execution
-     * @param {Number} ms Number of millisecond
-     */
-    sleep(ms) {
-      const start = Date.now();
-      while (Date.now() - start < ms) {}
-    },
+    if (player.state === states.stop) {
+      player.execTime = 0;
+    }
+    player.start = _performance.now();
 
-    /**
-     * List all palyers
-     * @returns {Array} palyers
-     */
-    list() {
-      const copy = JSON.parse(JSON.stringify(stopwatch[players]));
-      console.log(copy);
-      return copy;
-    },
+    player.state = states.start;
+  },
 
-    /**
-     * Clear all palyers
-     */
-    clear() {
-      stopwatch[players] = {};
+  /**
+   * Pause timing
+   * @param {String} tag tag
+   * @returns {Number} run time
+   */
+  pause(tag) {
+    if (!stopwatch[players][tag]) {
+      console.error(`"${tag}" does not exist`);
+      return -1;
+    }
 
-      if (isBrowser) {
-        _performance.clearMarks();
-        _performance.clearMeasures();
-      }
+    const player = stopwatch[players][tag];
 
-      return true;
-    },
-  });
+    let runTime = 0;
+    if (player.state === states.start) {
+      runTime = _performance.now() - player.start;
+      player.execTime += runTime;
+    }
+    player.state = states.pause;
 
-  return stopwatch;
-}
+    return runTime;
+  },
+
+  /**
+   * Stop timing
+   * @param {String} tag tag
+   * @returns {Object} timer
+   */
+  stop(tag) {
+    if (!stopwatch[players][tag]) {
+      console.error(`"${tag}" does not exist`);
+      return -1;
+    }
+
+    const player = stopwatch[players][tag];
+    stopwatch.pause(tag);
+    player.state = states.stop;
+
+    if (isBrowser) {
+      _performance.mark(prefix.stop + tag);
+      _performance.measure(tag, prefix.start + tag, prefix.stop + tag);
+    }
+
+    _config.print && console.log(`${tag}: ${player.execTime}ms`);
+    return { ...player };
+  },
+
+  /**
+   * Suspends the execution
+   * @param {Number} ms Number of millisecond
+   */
+  sleep(ms) {
+    const start = Date.now();
+    // eslint-disable-next-line no-empty
+    while (Date.now() - start < ms) {}
+  },
+
+  /**
+   * Show palyer(s)
+   * @param {String} [tag] tag
+   * @returns {(Object|Array[Object])} palyer(s)
+   */
+  show(tag) {
+    let showingTimer = stopwatch[players];
+
+    if (tag) {
+      showingTimer = stopwatch[players][tag];
+    }
+
+    const report = JSON.stringify(showingTimer, null, 2);
+    const copy = JSON.parse(report);
+    _config.print && console.log(report);
+    return copy;
+  },
+
+  /**
+   * Clear all palyers
+   * @returns {Boolean} success
+   */
+  clear() {
+    stopwatch[players] = {};
+
+    if (isBrowser) {
+      _performance.clearMarks();
+      _performance.clearMeasures();
+    }
+
+    return true;
+  },
+
+  /**
+   * Register the stopwatch2 to global with the given name.
+   * @param {String} globalName global name
+   * @returns {Boolean} success
+   */
+  registerToGlobal(globalName) {
+    if (_global[globalName]) {
+      console.error(`"${globalName}" already exist in global!`);
+      return false;
+    }
+    _global[globalName] = stopwatch;
+    return true;
+  },
+
+  /**
+   * config object
+   */
+  config: _config,
+};
+
+export default stopwatch;

@@ -5,10 +5,15 @@
   "main": "index.js",
   "scripts": {
     "prepublishOnly": "make prepublishOnly",
-    "test": "node test/test.js",
-    "dev": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch2 --no-treeshake -m inline -w",
-    "build": "rollup src/stopwatch.js --file index.js --format umd --name stopwatch2 --no-treeshake"
+    "dev": "make dev",
+    "build": "make build",
+    "lint": "make lint",
+    "test": "make tests"
   },
+  "files": [
+    "index.js",
+    "index.d.ts"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/zjffun/stopwatch.git"
@@ -20,6 +25,17 @@
   },
   "homepage": "https://github.com/zjffun/stopwatch#readme",
   "devDependencies": {
+    "chai": "^4.2.0",
+    "eslint": "^7.0.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-plugin-import": "^2.20.2",
+    "eslint-plugin-mocha": "^7.0.0",
+    "karma": "^5.0.9",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^3.1.0",
+    "karma-firefox-launcher": "^1.3.0",
+    "karma-mocha": "^2.0.1",
+    "mocha": "^7.1.2",
     "rollup": "^1.27.5"
   }
 }

@@ -1,53 +1,66 @@
-const assert = require("assert");
-const mysw1 = require("../index.js")("mysw1");
-const mysw2 = require("../index.js")("mysw2");
+if (typeof stopwatch2 === 'undefined') {
+  stopwatch2 = require('..');
+}
 
-/**
- * init
- */
-assert.strictEqual(typeof mysw1, "object");
-assert.strictEqual(mysw1 === mysw2, false);
+if (typeof assert === 'undefined') {
+  assert = require('chai').assert;
+}
 
-/**
- * start pause stop sleep
- */
-(() => {
-  // pause
-  mysw1.start("tag");
-  let t1 = mysw1.pause("tag");
-  mysw1.sleep(500);
-  mysw1.start("tag");
-  let t2 = mysw1.pause("tag");
-  let tstop = mysw1.stop("tag");
-  assert.strictEqual(t1 > 0, true);
-  assert.strictEqual(t2 > 0, true);
-  assert.strictEqual(tstop < 300, true);
-  mysw1.clear();
+// TODO: test print
+stopwatch2.config.print = false;
 
-  // not pause
-  mysw1.start("tag");
-  mysw1.sleep(500);
-  tstop = mysw1.stop("tag");
-  assert.strictEqual(tstop > 300, true);
-  mysw1.clear();
+describe('init', function () {
+  it('stopwatch2 is object', function () {
+    assert.equal(typeof stopwatch2, 'object');
+  });
+});
 
-  // muti group
-  mysw1.start("tag");
-  mysw2.start("tag");
-  mysw1.pause("tag");
-  mysw1.sleep(200);
-  let m1t = mysw1.stop("tag");
-  let m2t = mysw2.stop("tag");
-  assert.strictEqual(m1t < 150, true);
-  assert.strictEqual(m2t > 150, true);
-  mysw1.clear();
-  mysw2.clear();
-})();
+describe('timing', function () {
+  afterEach(function () {
+    stopwatch2.clear();
+  });
 
-/**
- * list clear
- */
-mysw1.start("tag");
-assert.strictEqual(typeof mysw1.list().tag, "object");
-assert.strictEqual(mysw1.clear(), true);
-assert.strictEqual(typeof mysw1.list().tag, "undefined");
+  it('pause', function () {
+    stopwatch2.start('tag');
+    assert.isAtLeast(stopwatch2.pause('tag'), 0);
+    stopwatch2.sleep(103);
+    stopwatch2.start('tag');
+    assert.isAtLeast(stopwatch2.pause('tag'), 0);
+
+    const tstop = stopwatch2.stop('tag');
+    assert.isAtMost(tstop.execTime, 100);
+  });
+
+  it('not pause', function () {
+    stopwatch2.start('tag');
+    stopwatch2.sleep(103);
+    const tstop = stopwatch2.stop('tag');
+    assert.isAtLeast(tstop.execTime, 100);
+  });
+});
+
+describe('show', function () {
+  before(function () {
+    stopwatch2.start(1);
+    stopwatch2.start(2);
+    stopwatch2.start(3);
+    stopwatch2.pause(1);
+    stopwatch2.pause(2);
+    stopwatch2.pause(3);
+  });
+
+  after(function () {
+    stopwatch2.clear();
+  });
+
+  it('show one', function () {
+    const timer = stopwatch2.show(1);
+
+    assert.hasAllKeys(timer, ['start', 'execTime']);
+  });
+
+  it('show all', function () {
+    const timer = stopwatch2.show();
+    assert.hasAllKeys(timer, ['1', '2', '2']);
+  });
+});

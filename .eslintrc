@@ -1,0 +1,31 @@
+{
+  "extends": ["airbnb-base"],
+  "env": {
+    "shared-node-browser": true
+  },
+  "rules": {
+    "linebreak-style": "off",
+    "no-underscore-dangle": "off",
+    "no-eval": "off",
+    "no-unused-expressions": "off"
+  },
+  "globals": { "performance": false, "self": false },
+  "ignorePatterns": ["index.js"],
+  "overrides": [
+    {
+      "files": ["test/*.js"],
+      "env": { "mocha": true },
+      "plugins": ["mocha"],
+      "extends": ["plugin:mocha/recommended"],
+      "rules": {
+        "func-names": "off",
+        "prefer-arrow-callback": "off",
+        "global-require": "off"
+      },
+      "globals": {
+        "stopwatch2": true,
+        "assert": true
+      }
+    }
+  ]
+}

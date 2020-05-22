@@ -1,8 +1,22 @@
 prepublishOnly:
-	npm run build
+	make build
 	# check uncommit changes
 	[[ -z `git status --porcelain` ]]
-	npm run test
+	make lint
+	make tests
+
+dev:
+	npx rollup -c -m inline -w
+
+build:
+	npx rollup -c
+
+tests:
+	npx mocha
+	npx karma start --single-run
+
+lint:
+	npx eslint **/*.js
 
 generateTypeDefinitions:
-	dts-gen -e "require(require('path').resolve('./index.js'))('sw')" -s
+	dts-gen -e "require(require('path').resolve('./index.js'))" -s
