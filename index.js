@@ -18,14 +18,13 @@
   let _global = null;
 
   if (isNode) {
-    // let this require out of webpack control
+    // let this require out of rollup control
     _performance = eval('require("perf_hooks")').performance;
     _global = global;
   } else if (isBrowser) {
     _performance = performance;
-    // window.self and self are different
     // eslint-disable-next-line no-restricted-globals
-    _global = self;
+    _global = window.self;
   } else {
     throw Error('unknow environment!');
   }

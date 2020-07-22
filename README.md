@@ -41,11 +41,19 @@ sw.stop('tag1');
 CDN:
 
 ```html
-<script src=""></script>
+<script src="https://cdn.jsdelivr.net/npm/stopwatch2@0.0.5/index.min.js"></script>
 <script>
-  stopwatch2.start('tag1');
+  const sw = new Stopwatch2('tag1');
+  sw.start();
   // ...
-  stopwatch2.stop('tag1');
+  sw.pause();
+  sw.stop();
+  console.log(sw);
+
+  // or
+  Stopwatch2.start('tag2');
+  Stopwatch2.pause('tag2');
+  Stopwatch2.stop('tag2');
 </script>
 ```
 
@@ -54,25 +62,28 @@ CDN:
 ## Statistic piece of code total runing time
 
 ```js
-const stopwatch2 = require('stopwatch2');
+const SW = require('stopwatch2');
+
+const pushSW = new SW('push');
+const unshiftSW = new SW('unshift');
 
 const arr1 = [];
 const arr2 = [];
 for (let i = 0; i < 1 << 17; i++) {
   // ...
-  stopwatch2.start('push');
+  pushSW.start('push');
   arr1.push(i);
-  stopwatch2.pause('push');
+  pushSW.pause('push');
 
   // ...
-  stopwatch2.start('unshift');
+  unshiftSW.start('unshift');
   arr2.unshift(i);
-  stopwatch2.pause('unshift');
+  unshiftSW.pause('unshift');
 
   // ...
 }
 
-stopwatch2.show();
+console.log(SW);
 /*
 {
   "push": {
@@ -89,17 +100,33 @@ stopwatch2.show();
 
 # API
 
-| name                                        | desc                                                                                                                |
-| ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `stopwatch2.start(tag: String)`             | Start timing                                                                                                        |
-| `stopwatch2.pause(tag: String)`             | Pause timing. Return the run time from last start                                                                   |
-| `stopwatch2.stop(tag: String)`              | Stop timing. Print and return current timer                                                                         |
-| `stopwatch2.show(tag?: String)`             | Without `tag` param: print and return all timers<br> With `tag` param: print and return the timer with specific tag |
-| `stopwatch2.clear()`                        | Clear all timers                                                                                                    |
-| `stopwatch2.sleep(ms: Number)`              | Sleep with given millisecond                                                                                        |
-| `stopwatch2.registerToGlobal(name: String)` | Register the stopwatch2 to global with the given name                                                               |
-| `stopwatch2.config.print`                   | Whether or not print result when call `stop()` and `show()`, default: true                                          |
+## Class methods and attributes
+
+| name                                        | description                                                                      |
+| ------------------------------------------- | -------------------------------------------------------------------------------- |
+| `Stopwatch2.start()`                        | Start timing.                                                                    |
+| `Stopwatch2.pause()`                        | Pause timing                                                                     |
+| `Stopwatch2.stop()`                         | Stop timing                                                                      |
+| `Stopwatch2.clear()`                        | Clear stopwatch                                                                  |
+| `Stopwatch2.toString()`                     | Return string form stopwatch info. Usually for log and print.                    |
+| `Stopwatch2.sleep(ms: Number)`              | Sleep with given millisecond                                                     |
+| `Stopwatch2.registerToGlobal(name: String)` | Register the stopwatch to global with the given name                             |
+| `Stopwatch2.config.log`                     | Whether or not log result. <br/>default: {start: true, pause: false, stop: true} |
+
+## Instance methods and attributes
+
+| name                              | description                                                   |
+| --------------------------------- | ------------------------------------------------------------- |
+| `Stopwatch2.prototype.start()`    | Start timing.                                                 |
+| `Stopwatch2.prototype.pause()`    | Pause timing.                                                 |
+| `Stopwatch2.prototype.stop()`     | Stop timing.                                                  |
+| `Stopwatch2.prototype.destroy()`  | Destroy stopwatch.                                            |
+| `Stopwatch2.prototype.toString()` | Return string form stopwatch info. Usually for log and print. |
 
 # Development
 
 # Release History
+
+## 0.0.6
+
+- redesign API

@@ -11,19 +11,16 @@ let _performance = null;
 let _global = null;
 
 if (isNode) {
-  // let this require out of webpack control
+  // let this require out of rollup control
   _performance = eval('require("perf_hooks")').performance;
   _global = global;
 } else if (isBrowser) {
   _performance = performance;
-  // window.self and self are different
-  // eslint-disable-next-line no-restricted-globals
-  _global = self;
+  // eslint-disable-next-line no-undef
+  _global = window.self;
 } else {
   throw Error('unknow environment!');
 }
-
-const players = Symbol('players');
 
 const states = {
   start: Symbol('start'),
@@ -36,12 +33,17 @@ const prefix = {
   stop: 'sw2-stop--',
 };
 
-const _config = {
-  print: true,
+const defaultConfig = {
+  silent: false,
+  performanceMeasure: true,
 };
 
-const stopwatch = {
-  [players]: {},
+const players = Object.create(null);
+
+class Stopwatch2 {
+  constructor(tag) {
+    this.create(tag);
+  }
 
   /**
    * Start timing
@@ -55,12 +57,13 @@ const stopwatch = {
         state: states.start,
       };
 
-      if (isBrowser) {
+      if (isBrowser && this.config.performance) {
         _performance.mark(prefix.start + tag);
       }
 
       return;
     }
+
     const player = stopwatch[players][tag];
 
     if (player.state === states.stop) {
@@ -69,7 +72,7 @@ const stopwatch = {
     player.start = _performance.now();
 
     player.state = states.start;
-  },
+  }
 
   /**
    * Pause timing
@@ -92,7 +95,7 @@ const stopwatch = {
     player.state = states.pause;
 
     return runTime;
-  },
+  }
 
   /**
    * Stop timing
@@ -114,43 +117,49 @@ const stopwatch = {
       _performance.measure(tag, prefix.start + tag, prefix.stop + tag);
     }
 
-    _config.print && console.log(`${tag}: ${player.execTime}ms`);
+    if (print) {
+      console.log(`${tag}: ${player.execTime}ms`);
+    }
+
     return { ...player };
-  },
+  }
+
+  static start(tags) {
+    return this.create(tags).map((p) => p.start());
+  }
+
+  static pause(tags) {
+    return this.get(tags, (p) => p.pause());
+  }
+
+  static stop(tags) {
+    return this.get(tags, (p) => p.stop());
+  }
 
   /**
    * Suspends the execution
    * @param {Number} ms Number of millisecond
    */
-  sleep(ms) {
+  static sleep(ms) {
     const start = Date.now();
     // eslint-disable-next-line no-empty
     while (Date.now() - start < ms) {}
-  },
+  }
 
   /**
    * Show palyer(s)
    * @param {String} [tag] tag
    * @returns {(Object|Array[Object])} palyer(s)
    */
-  show(tag) {
-    let showingTimer = stopwatch[players];
-
-    if (tag) {
-      showingTimer = stopwatch[players][tag];
-    }
-
-    const report = JSON.stringify(showingTimer, null, 2);
-    const copy = JSON.parse(report);
-    _config.print && console.log(report);
-    return copy;
-  },
+  static toString(tags) {
+    return this.get(tags, (d) => d.toString()).join('\n');
+  }
 
   /**
    * Clear all palyers
    * @returns {Boolean} success
    */
-  clear() {
+  static clear() {
     stopwatch[players] = {};
 
     if (isBrowser) {
@@ -159,26 +168,51 @@ const stopwatch = {
     }
 
     return true;
-  },
+  }
 
   /**
    * Register the stopwatch2 to global with the given name.
    * @param {String} globalName global name
    * @returns {Boolean} success
    */
-  registerToGlobal(globalName) {
+  static registerToGlobal(globalName) {
     if (_global[globalName]) {
       console.error(`"${globalName}" already exist in global!`);
       return false;
     }
     _global[globalName] = stopwatch;
     return true;
-  },
+  }
+
+  static create(tags) {
+    let sw;
+    return sw;
+  }
+
+  static get(tags, fn) {
+    if (Array.isArray(tags)) {
+      const result = [];
+      stopwatchs.forEach((sw) => {
+        if (tags.includes(sw.tag)) {
+          result.push(fn ? fn(sw) : sw);
+        }
+      });
+      return result;
+    }
+
+    for (const sw of stopwatchs) {
+      if (sw.tag === tags) {
+        return fn ? fn(sw) : sw;
+      }
+    }
+
+    return null;
+  }
 
   /**
    * config object
    */
-  config: _config,
-};
+  static config = defaultConfig;
+}
 
 export default stopwatch;
