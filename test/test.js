@@ -1,66 +1,103 @@
-if (typeof stopwatch2 === 'undefined') {
-  stopwatch2 = require('..');
+if (typeof Stopwatch2 === 'undefined') {
+  Stopwatch2 = require('..');
 }
 
 if (typeof assert === 'undefined') {
-  assert = require('chai').assert;
+  expect = require('chai').expect;
 }
 
-// TODO: test print
-stopwatch2.config.print = false;
+describe('#constructor', function () {
+  it('should be an instance of Stopwatch2', () => {
+    const sw = new Stopwatch2('tag');
+    expect(sw).toBeInstanceOf(Stopwatch2);
+  });
 
-describe('init', function () {
-  it('stopwatch2 is object', function () {
-    assert.equal(typeof stopwatch2, 'object');
+  it('state should be stop', () => {
+    const sw = new Stopwatch2('tag');
+    expect(sw.state).eq(Stopwatch2.state.stop);
+  });
+
+  it('should has times', () => {
+    const sw = new Stopwatch2('tag');
+    expect(sw.startTime).eq(0);
+    expect(sw.lastStartTime).eq(0);
+    expect(sw.execTime).eq(0);
   });
 });
 
-describe('timing', function () {
-  afterEach(function () {
-    stopwatch2.clear();
+describe('instance methods', () => {
+  let sw = null;
+  beforeEach(() => {
+    sw = new Stopwatch2('tag');
   });
 
-  it('pause', function () {
-    stopwatch2.start('tag');
-    assert.isAtLeast(stopwatch2.pause('tag'), 0);
-    stopwatch2.sleep(103);
-    stopwatch2.start('tag');
-    assert.isAtLeast(stopwatch2.pause('tag'), 0);
-
-    const tstop = stopwatch2.stop('tag');
-    assert.isAtMost(tstop.execTime, 100);
+  afterEach(() => {
+    Stopwatch2.clear();
   });
 
-  it('not pause', function () {
-    stopwatch2.start('tag');
-    stopwatch2.sleep(103);
-    const tstop = stopwatch2.stop('tag');
-    assert.isAtLeast(tstop.execTime, 100);
+  describe('start', () => {
+    before(() => {
+      sw.start();
+    });
+    it('state should be start', () => {
+      expect(sw.state).eq(Stopwatch2.state.start);
+    });
+    it('should set startTime', () => {
+      expect(sw.startTime).gt(0);
+    });
+    it('should set lastStartTime', () => {
+      expect(sw.lastStartTime).gt(0);
+    });
+    it('should not set execTime', () => {
+      expect(sw.execTime).gt(0);
+    });
   });
+
+  describe('pause', function () {
+    before(() => {
+      sw.pause();
+    });
+    it('state should be pause', () => {
+      expect(sw.state).eq(Stopwatch2.state.pause);
+    });
+    it('should not set startTime', () => {
+      expect(sw.startTime).eq(0);
+    });
+    it('should not set lastStartTime', () => {
+      expect(sw.lastStartTime).eq(0);
+    });
+    it('should not set execTime', () => {
+      expect(sw.execTime).eq(0);
+    });
+  });
+
+  describe('stop', function () {
+    before(() => {
+      sw.pause();
+    });
+    it('state should be stop', () => {
+      expect(sw.state).eq(Stopwatch2.state.stop);
+    });
+    it('should not set startTime', () => {
+      expect(sw.startTime).eq(0);
+    });
+    it('should not set lastStartTime', () => {
+      expect(sw.lastStartTime).eq(0);
+    });
+    it('should not set execTime', () => {
+      expect(sw.execTime).eq(0);
+    });
+  });
+
+  describe('start - pause', () => {});
+
+  describe('pause - start', () => {});
+
+  describe('start - stop', () => {});
+
+  describe('stop - start', () => {});
 });
 
-describe('show', function () {
-  before(function () {
-    stopwatch2.start(1);
-    stopwatch2.start(2);
-    stopwatch2.start(3);
-    stopwatch2.pause(1);
-    stopwatch2.pause(2);
-    stopwatch2.pause(3);
-  });
+describe('class methods', () => {});
 
-  after(function () {
-    stopwatch2.clear();
-  });
-
-  it('show one', function () {
-    const timer = stopwatch2.show(1);
-
-    assert.hasAllKeys(timer, ['start', 'execTime']);
-  });
-
-  it('show all', function () {
-    const timer = stopwatch2.show();
-    assert.hasAllKeys(timer, ['1', '2', '2']);
-  });
-});
+describe('config', () => {});
