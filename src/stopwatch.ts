@@ -45,6 +45,7 @@ class Stopwatch2 {
   startTime = 0;
   lastStartTime = 0;
   execTime = 0;
+  lastExecTime = 0;
   state = states.stop;
   tag;
 
@@ -58,6 +59,7 @@ class Stopwatch2 {
 
   constructor(tag: string) {
     this.tag = tag;
+    this.stop();
     players[tag] = this;
   }
 
@@ -93,6 +95,7 @@ class Stopwatch2 {
   stop(): Stopwatch2 {
     this.pause();
     this.state = states.stop;
+    this.lastExecTime = 0;
 
     if (isMeasurePerformance()) {
       _performance.mark(prefix.stop + this.tag);
@@ -102,6 +105,7 @@ class Stopwatch2 {
         prefix.stop + this.tag,
       );
     }
+
     return this;
   }
 

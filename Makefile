@@ -6,7 +6,9 @@ prepublishOnly:
 	make tests
 
 dev:
-	npx rollup -c -m inline -w
+	# can't work now, but already fixed
+	# see: https://github.com/rollup/plugins/pull/425
+	npx rollup -c -w
 
 build:
 	npx rollup -c
