@@ -8,7 +8,8 @@ prepublishOnly:
 dev:
 	# can't work now, but already fixed
 	# see: https://github.com/rollup/plugins/pull/425
-	npx rollup -c -w
+	# npx rollup -c -w
+	npx chokidar "src/stopwatch.ts" -c "npm run build"
 
 build:
 	npx rollup -c

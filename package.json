@@ -27,6 +27,7 @@
   "devDependencies": {
     "@rollup/plugin-typescript": "^5.0.2",
     "chai": "^4.2.0",
+    "chokidar-cli": "^2.1.0",
     "eslint": "^7.0.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-plugin-import": "^2.20.2",

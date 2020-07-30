@@ -41,6 +41,12 @@ function isMeasurePerformance() {
   return isBrowser && Stopwatch2.config.performanceMeasure;
 }
 
+function sleep(ms: number): void {
+  const start = _performance.now();
+  // eslint-disable-next-line no-empty
+  while (_performance.now() - start < ms) {}
+}
+
 class Stopwatch2 {
   startTime = 0;
   lastStartTime = 0;
@@ -64,75 +70,106 @@ class Stopwatch2 {
   }
 
   start(): Stopwatch2 {
-    if (this.state === states.stop) {
-      this.startTime = _performance.now();
-      this.lastStartTime = this.startTime;
-      this.execTime = 0;
+    const now = _performance.now();
+
+    switch (this.state) {
+      case states.start:
+      case states.pause:
+        this.lastStartTime = now;
+        break;
+      case states.stop:
+      default:
+        this.startTime = now;
+        this.lastStartTime = now;
+        this.execTime = 0;
+        this.lastExecTime = 0;
+        break;
     }
 
     if (isMeasurePerformance()) {
       _performance.mark(prefix.start + this.tag);
     }
 
-    this.lastStartTime = _performance.now();
-
     this.state = states.start;
+
     return this;
   }
 
   pause(): Stopwatch2 {
-    let runTime = 0;
-    if (this.state === states.start) {
-      runTime = _performance.now() - this.lastStartTime;
-      this.execTime += runTime;
+    switch (this.state) {
+      case states.start:
+        let runTime = _performance.now() - this.lastStartTime;
+        this.lastExecTime = runTime;
+        this.execTime += runTime;
+        this.state = states.pause;
+        break;
+      case states.pause:
+      case states.stop:
+      default:
+        break;
     }
-
-    this.state = states.pause;
 
     return this;
   }
 
   stop(): Stopwatch2 {
-    this.pause();
-    this.state = states.stop;
-    this.lastExecTime = 0;
-
-    if (isMeasurePerformance()) {
-      _performance.mark(prefix.stop + this.tag);
-      _performance.measure(
-        this.tag,
-        prefix.start + this.tag,
-        prefix.stop + this.tag,
-      );
+    switch (this.state) {
+      case states.start:
+        this.pause();
+      // don't break here, need continue to run
+      case states.pause:
+        if (isMeasurePerformance()) {
+          _performance.mark(prefix.stop + this.tag);
+          _performance.measure(
+            this.tag,
+            prefix.start + this.tag,
+            prefix.stop + this.tag,
+          );
+        }
+        break;
+      case states.stop:
+      default:
+        break;
     }
+
+    this.state = states.stop;
 
     return this;
   }
 
-  static start(tags: string | string[]): Stopwatch2[] {
-    return Stopwatch2.create(tags).map((p) => p.start());
+  sleep(ms) {
+    sleep(ms);
   }
 
-  static pause(tags: string | string[]): Stopwatch2[] {
-    return Stopwatch2.get(tags, (p) => p.pause());
+  toString() {
+    // TODO
+    return JSON.stringify(this);
   }
 
-  static stop(tags: string | string[]): Stopwatch2[] {
-    return Stopwatch2.get(tags, (p) => p.stop());
+  static start(...tags: string[]): Stopwatch2[] {
+    return Stopwatch2.create(...tags).map((p) => p.start());
+  }
+
+  static pause(...tags: string[]): Stopwatch2[] {
+    return Stopwatch2.get(...tags).map((p) => p.pause());
+  }
+
+  static stop(...tags: string[]): Stopwatch2[] {
+    return Stopwatch2.get(...tags).map((p) => p.stop());
   }
 
   /**
    * Suspends the execution
    * @param {number} ms Number of millisecond
    */
-  static sleep(ms: number): void {
-    const start = Date.now();
-    // eslint-disable-next-line no-empty
-    while (Date.now() - start < ms) {}
+  static sleep(ms) {
+    sleep(ms);
   }
 
-  static toString(tags: string | string[]) {
-    return Stopwatch2.get(tags, (d) => d.toString()).join('\n');
+  static toString(...tags: string[]) {
+    return Stopwatch2.get(...tags)
+      .map((d) => d.toString())
+      .join('\n');
   }
 
   static clear(): boolean {
@@ -152,39 +189,44 @@ class Stopwatch2 {
    */
   static registerToGlobal(globalName: string): boolean {
     if (_global[globalName]) {
-      console.error(`"${globalName}" already exist in global!`);
+      console.error(`Name "${globalName}" already exist in global!`);
       return false;
     }
     _global[globalName] = Stopwatch2;
     return true;
   }
 
-  static create(tags: string | string[]): Stopwatch2[] {
-    if (Array.isArray(tags)) {
-      const result = [];
-      tags.forEach((tag) => {
-        result.push(new Stopwatch2(tag));
-      });
-      return result;
-    }
-    return Stopwatch2.create([tags]);
+  static create(...tags: string[]): Stopwatch2[] {
+    const result = [];
+    tags.forEach((tag) => {
+      result.push(new Stopwatch2(tag));
+    });
+    return result;
   }
 
-  static get(
-    tags: string | string[],
-    fn: (Stopwatch2) => Stopwatch2,
-  ): Stopwatch2[] {
-    if (Array.isArray(tags)) {
-      const result = [];
-      players.forEach((sw) => {
-        if (tags.includes(sw.tag)) {
-          result.push(fn ? fn(sw) : sw);
-        }
-      });
-      return result;
+  static get(...tags: string[]): Stopwatch2[] {
+    if (tags.length === 0) {
+      return Object.values(players);
     }
 
-    return Stopwatch2.get([tags], fn);
+    const result = [];
+    for (const tag in players) {
+      if (Object.prototype.hasOwnProperty.call(players, tag)) {
+        const player = players[tag];
+        if (tags.includes(tag)) {
+          result.push(player);
+        }
+      }
+    }
+    return result;
+  }
+
+  static getOne(tag: string): Stopwatch2 | null {
+    const player = players[tag];
+    if (player) {
+      return player;
+    }
+    return null;
   }
 }
 
