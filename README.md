@@ -1,22 +1,25 @@
+[![jsdelivr][jsdelivr-badge]][jsdelivr-link]
+[![npm version][fury-badge]][fury-link]
+
 # stopwatch2
 
 Measure the runtime of JavaScript code. (Mainly used for calculate the total runtime of a piece of code.)
 
-# Installation
+## Installation
 
-## npm
+### npm
 
 ```bash
 npm install stopwatch2
 ```
 
-## CDN
+### CDN
 
 ```html
-<script src=""></script>
+<script src="https://cdn.jsdelivr.net/npm/stopwatch2@latest/index.min.js"></script>
 ```
 
-# Usage
+## Usage
 
 `Stopwatch2` exposes a class simply call `start`, `pause`, `stop` and etc. methods on it's instance or itself to measure the runtime of code.
 
@@ -65,7 +68,7 @@ console.table(Stopwatch2.get());
 CDN:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/stopwatch2@0.0.5/index.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/stopwatch2@latest/index.min.js"></script>
 <script>
   Stopwatch2.start('tag1');
   Stopwatch2.pause('tag1');
@@ -84,9 +87,9 @@ CDN:
 </script>
 ```
 
-# Examples
+## Examples
 
-## Statistic piece of code total runing time
+### Statistic piece of code total runing time
 
 ```js
 const Stopwatch2 = require('stopwatch2');
@@ -146,9 +149,9 @@ push -> exec: 20.203357875347137, state: pause, start: 71.1270010471344, lexec: 
 */
 ```
 
-# API
+## API
 
-## Instance methods and attributes
+### Instance methods and attributes
 
 | name                                 | description                                                                                |
 | ------------------------------------ | ------------------------------------------------------------------------------------------ |
@@ -163,7 +166,7 @@ push -> exec: 20.203357875347137, state: pause, start: 71.1270010471344, lexec: 
 | `Stopwatch2.prototype.state`         | (string) The state of this stopwatch. This value can be one of `start`, `pause` and `stop` |
 | `Stopwatch2.prototype.tag`           | (string) The tag of this stopwatch.                                                        |
 
-## Class methods and attributes
+### Class methods and attributes
 
 | name                                       | description                                                                                     |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------------- |
@@ -181,10 +184,15 @@ push -> exec: 20.203357875347137, state: pause, start: 71.1270010471344, lexec: 
 | `Stopwatch2.config.performanceMeasurement` | Whether or not record the result to browser's Performance pannel. <br/>default: false           |
 | `Stopwatch2.states`                        | (object) Contain `start`, `pause` and `stop` state attribute.                                   |
 
-# Development
+## Development
 
-# Release History
+## Release History
 
-## 0.0.6
+### 0.0.6
 
 - redesign API
+
+[fury-link]: https://badge.fury.io/js/stopwatch2
+[fury-badge]: https://badge.fury.io/js/stopwatch2.svg
+[jsdelivr-link]: https://www.jsdelivr.com/package/npm/stopwatch2
+[jsdelivr-badge]: https://data.jsdelivr.com/v1/package/npm/stopwatch2/badge

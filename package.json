@@ -3,6 +3,7 @@
   "version": "0.0.6",
   "description": "Measure the running time of JavaScript code. (Mainly used for calculate the total running time of a piece of code.)",
   "main": "index.js",
+  "types": "./index.d.ts",
   "scripts": {
     "prepublishOnly": "make prepublishOnly",
     "dev": "make dev",
@@ -18,12 +19,18 @@
     "type": "git",
     "url": "git+https://github.com/zjffun/stopwatch.git"
   },
-  "author": "",
+  "author": "JuFeng Zhang",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/zjffun/stopwatch/issues"
   },
   "homepage": "https://github.com/zjffun/stopwatch#readme",
+  "keywords": [
+    "performace",
+    "measure",
+    "start-and-pause",
+    "total-runtime"
+  ],
   "devDependencies": {
     "@rollup/plugin-typescript": "^5.0.2",
     "chai": "^4.2.0",
