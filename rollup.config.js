@@ -1,12 +1,14 @@
-const { version } = require('./package.json');
+import typescript from '@rollup/plugin-typescript';
+import { version } from './package.json';
 
 export default {
-  input: 'src/stopwatch.js',
+  input: 'src/stopwatch.ts',
   output: {
     file: 'index.js',
-    name: 'stopwatch2',
+    name: 'Stopwatch2',
     format: 'umd',
-    banner: `/* stopwatch2 version ${version} */`,
+    banner: `/* Stopwatch2 version ${version} */`,
   },
   treeshake: false,
+  plugins: [typescript()],
 };

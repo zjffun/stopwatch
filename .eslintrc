@@ -20,11 +20,12 @@
       "rules": {
         "func-names": "off",
         "prefer-arrow-callback": "off",
-        "global-require": "off"
+        "global-require": "off",
+        "mocha/no-mocha-arrows": "off"
       },
       "globals": {
-        "stopwatch2": true,
-        "assert": true
+        "Stopwatch2": true,
+        "expect": true,
       }
     }
   ]
