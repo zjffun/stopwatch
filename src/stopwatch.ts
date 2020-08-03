@@ -7,8 +7,8 @@ const isBrowser = new Function(
   'try{return this===self;}catch(e){return false;}',
 )();
 
-let _performance = null;
-let _global = null;
+let _performance: any = null;
+let _global: any = null;
 
 if (isNode) {
   // let this require out of rollup control
@@ -23,22 +23,22 @@ if (isNode) {
 }
 
 const states = {
-  __proto__: null,
-  start: Symbol('start'),
-  pause: Symbol('pause'),
-  stop: Symbol('stop'),
+  __proto__: <null>null,
+  start: 'start',
+  pause: 'pause',
+  stop: 'stop',
 };
 
 const prefix = {
-  __proto__: null,
+  __proto__: <null>null,
   start: 'sw2-start--',
-  stop: 'sw2-stop--',
+  pause: 'sw2-pause--',
 };
 
-let players = Object.create(null);
+let stopwatches = Object.create(null);
 
-function isMeasurePerformance() {
-  return isBrowser && Stopwatch2.config.performanceMeasure;
+function isPerformanceMeasureOn() {
+  return isBrowser && Stopwatch2.config.performanceMeasurement;
 }
 
 function sleep(ms: number): void {
@@ -53,12 +53,11 @@ class Stopwatch2 {
   execTime = 0;
   lastExecTime = 0;
   state = states.stop;
-  tag;
+  tag: string;
 
   static config = {
-    __proto__: null,
-    silent: false,
-    performanceMeasure: true,
+    __proto__: <null>null,
+    performanceMeasurement: false,
   };
 
   static states = states;
@@ -66,7 +65,7 @@ class Stopwatch2 {
   constructor(tag: string) {
     this.tag = tag;
     this.stop();
-    players[tag] = this;
+    stopwatches[tag] = this;
   }
 
   start(): Stopwatch2 {
@@ -86,7 +85,7 @@ class Stopwatch2 {
         break;
     }
 
-    if (isMeasurePerformance()) {
+    if (isPerformanceMeasureOn()) {
       _performance.mark(prefix.start + this.tag);
     }
 
@@ -102,6 +101,16 @@ class Stopwatch2 {
         this.lastExecTime = runTime;
         this.execTime += runTime;
         this.state = states.pause;
+
+        if (isPerformanceMeasureOn()) {
+          _performance.mark(prefix.pause + this.tag);
+          _performance.measure(
+            this.tag,
+            prefix.start + this.tag,
+            prefix.pause + this.tag,
+          );
+        }
+
         break;
       case states.pause:
       case states.stop:
@@ -116,17 +125,8 @@ class Stopwatch2 {
     switch (this.state) {
       case states.start:
         this.pause();
-      // don't break here, need continue to run
-      case states.pause:
-        if (isMeasurePerformance()) {
-          _performance.mark(prefix.stop + this.tag);
-          _performance.measure(
-            this.tag,
-            prefix.start + this.tag,
-            prefix.stop + this.tag,
-          );
-        }
         break;
+      case states.pause:
       case states.stop:
       default:
         break;
@@ -137,45 +137,46 @@ class Stopwatch2 {
     return this;
   }
 
-  sleep(ms) {
+  sleep(ms: number) {
     sleep(ms);
   }
 
   toString() {
-    // TODO
-    return JSON.stringify(this);
+    return `${this.tag} -> exec: ${this.execTime}, state: ${this.state}, start: ${this.startTime}, lexec: ${this.lastExecTime}, lstart: ${this.lastStartTime}`;
   }
 
   static start(...tags: string[]): Stopwatch2[] {
-    return Stopwatch2.create(...tags).map((p) => p.start());
+    Stopwatch2.create(...tags);
+
+    return Stopwatch2.getArray(...tags).map((p) => p.start());
   }
 
   static pause(...tags: string[]): Stopwatch2[] {
-    return Stopwatch2.get(...tags).map((p) => p.pause());
+    return Stopwatch2.getArray(...tags).map((p) => p.pause());
   }
 
   static stop(...tags: string[]): Stopwatch2[] {
-    return Stopwatch2.get(...tags).map((p) => p.stop());
+    return Stopwatch2.getArray(...tags).map((p) => p.stop());
   }
 
   /**
    * Suspends the execution
    * @param {number} ms Number of millisecond
    */
-  static sleep(ms) {
+  static sleep(ms: number) {
     sleep(ms);
   }
 
   static toString(...tags: string[]) {
-    return Stopwatch2.get(...tags)
+    return Stopwatch2.getArray(...tags)
       .map((d) => d.toString())
       .join('\n');
   }
 
   static clear(): boolean {
-    players = Object.create(null);
+    stopwatches = Object.create(null);
 
-    if (isMeasurePerformance()) {
+    if (isPerformanceMeasureOn()) {
       _performance.clearMarks();
       _performance.clearMeasures();
     }
@@ -197,24 +198,24 @@ class Stopwatch2 {
   }
 
   static create(...tags: string[]): Stopwatch2[] {
-    const result = [];
+    const result: Array<Stopwatch2> = [];
     tags.forEach((tag) => {
       result.push(new Stopwatch2(tag));
     });
     return result;
   }
 
-  static get(...tags: string[]): Stopwatch2[] {
+  static getArray(...tags: string[]): Stopwatch2[] {
     if (tags.length === 0) {
-      return Object.values(players);
+      return Object.values(stopwatches);
     }
 
     const result = [];
-    for (const tag in players) {
-      if (Object.prototype.hasOwnProperty.call(players, tag)) {
-        const player = players[tag];
+    for (const tag in stopwatches) {
+      if (Object.prototype.hasOwnProperty.call(stopwatches, tag)) {
+        const stopwatch = stopwatches[tag];
         if (tags.includes(tag)) {
-          result.push(player);
+          result.push(stopwatch);
         }
       }
     }
@@ -222,11 +223,28 @@ class Stopwatch2 {
   }
 
   static getOne(tag: string): Stopwatch2 | null {
-    const player = players[tag];
-    if (player) {
-      return player;
+    const stopwatch = stopwatches[tag];
+    if (stopwatch) {
+      return stopwatch;
     }
     return null;
+  }
+
+  static get(...tags: string[]): Object {
+    if (tags.length === 0) {
+      return Object.assign({}, stopwatches);
+    }
+
+    const result = Object.create(null);
+    for (const tag in stopwatches) {
+      if (Object.prototype.hasOwnProperty.call(stopwatches, tag)) {
+        const stopwatch = stopwatches[tag];
+        if (tags.includes(tag)) {
+          result[tag] = stopwatch;
+        }
+      }
+    }
+    return result;
   }
 }
 

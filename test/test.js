@@ -236,20 +236,23 @@ describe('Stopwatch2', () => {
     });
 
     it('toString', () => {
-      // TODO
       sw.start();
-      sw.stop();
+      expect(
+        /tag -> exec: .*?, state: start, start: .*?, lexec: .*?, lstart: .*?/.test(
+          sw,
+        ),
+      ).to.be.true;
     });
   });
 
   describe('class methods', () => {
-    let players;
+    let stopwatches;
 
     it('start', () => {
       Stopwatch2.start('tag1', 'tag2', 'tag3');
-      players = Stopwatch2.get();
-      expect(players).to.lengthOf(3);
-      players.forEach((d) => {
+      stopwatches = Stopwatch2.getArray();
+      expect(stopwatches).to.lengthOf(3);
+      stopwatches.forEach((d) => {
         expect(d.state).to.eq(Stopwatch2.states.start);
       });
     });
@@ -263,8 +266,8 @@ describe('Stopwatch2', () => {
 
       // all
       Stopwatch2.pause();
-      players = Stopwatch2.get();
-      players.forEach((d) => {
+      stopwatches = Stopwatch2.getArray();
+      stopwatches.forEach((d) => {
         expect(d.state).to.eq(Stopwatch2.states.pause);
       });
     });
@@ -278,8 +281,8 @@ describe('Stopwatch2', () => {
 
       // all
       Stopwatch2.stop();
-      players = Stopwatch2.get();
-      players.forEach((d) => {
+      stopwatches = Stopwatch2.getArray();
+      stopwatches.forEach((d) => {
         expect(d.state).to.eq(Stopwatch2.states.stop);
       });
     });
@@ -292,15 +295,20 @@ describe('Stopwatch2', () => {
     });
 
     it('toString', () => {
-      // TODO
+      Stopwatch2.start('tag1', 'tag2', 'tag3');
+      Stopwatch2.stop('tag2');
+      const reg = new RegExp(`tag1 -> exec: .*?, state: start, start: .*?, lexec: .*?, lstart: .*?
+tag2 -> exec: .*?, state: stop, start: .*?, lexec: .*?, lstart: .*?
+tag3 -> exec: .*?, state: start, start: .*?, lexec: .*?, lstart: .*?`);
+      expect(reg.test(Stopwatch2)).to.be.true;
     });
 
     it('clear', () => {
       Stopwatch2.start('tag1', 'tag2', 'tag3');
       new Stopwatch2('tag4');
       Stopwatch2.clear();
-      players = Stopwatch2.get();
-      expect(players).to.lengthOf(0);
+      stopwatches = Stopwatch2.getArray();
+      expect(stopwatches).to.lengthOf(0);
     });
 
     it('registerToGlobal', () => {
@@ -314,17 +322,21 @@ describe('Stopwatch2', () => {
     it('get', () => {
       Stopwatch2.start('tag1', 'tag2', 'tag3');
       new Stopwatch2('tag4');
-      players = Stopwatch2.get();
-      expect(players).to.lengthOf(4);
 
-      players = Stopwatch2.get('tag1', 'tag4');
-      expect(players).to.lengthOf(2);
+      stopwatches = Stopwatch2.get();
+      expect(stopwatches).to.have.own.property('tag1');
+      expect(stopwatches).to.have.own.property('tag2');
+      expect(stopwatches).to.have.own.property('tag3');
+      expect(stopwatches).to.have.own.property('tag4');
 
-      players = Stopwatch2.get('tag2');
-      expect(players).to.lengthOf(1);
+      stopwatches = Stopwatch2.get('tag1', 'tag4');
+      expect(stopwatches).to.have.own.property('tag1');
+      expect(stopwatches).to.not.have.own.property('tag2');
+      expect(stopwatches).to.not.have.own.property('tag3');
+      expect(stopwatches).to.have.own.property('tag4');
 
-      players = Stopwatch2.get('tag9');
-      expect(players).to.lengthOf(0);
+      stopwatches = Stopwatch2.get('tag2');
+      expect(stopwatches).to.have.own.property('tag2');
     });
 
     it('getOne', () => {
@@ -333,6 +345,22 @@ describe('Stopwatch2', () => {
       expect(Stopwatch2.getOne('tag1').tag).to.eq('tag1');
       expect(Stopwatch2.getOne('tag4').tag).to.eq('tag4');
       expect(Stopwatch2.getOne('tag9')).to.eq(null);
+    });
+
+    it('getArray', () => {
+      Stopwatch2.start('tag1', 'tag2', 'tag3');
+      new Stopwatch2('tag4');
+      stopwatches = Stopwatch2.getArray();
+      expect(stopwatches).to.lengthOf(4);
+
+      stopwatches = Stopwatch2.getArray('tag1', 'tag4');
+      expect(stopwatches).to.lengthOf(2);
+
+      stopwatches = Stopwatch2.getArray('tag2');
+      expect(stopwatches).to.lengthOf(1);
+
+      stopwatches = Stopwatch2.getArray('tag9');
+      expect(stopwatches).to.lengthOf(0);
     });
   });
 

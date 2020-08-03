@@ -6,13 +6,15 @@ prepublishOnly:
 	make tests
 
 dev:
-	# can't work now, but already fixed
+	# `-w` can't work now, but already fixed
 	# see: https://github.com/rollup/plugins/pull/425
 	# npx rollup -c -w
 	npx chokidar "src/stopwatch.ts" -c "npm run build"
 
 build:
+	# rollup ts plugin can't generate d.ts now
 	npx rollup -c
+	make generateTypeDefinitions
 
 tests:
 	npx mocha
@@ -22,4 +24,6 @@ lint:
 	npx eslint **/*.js
 
 generateTypeDefinitions:
-	dts-gen -e "require(require('path').resolve('./index.js'))" -s
+	# https://github.com/rollup/plugins/issues/394
+	tsc -d --emitDeclarationOnly
+	mv ./src/stopwatch.d.ts ./index.d.ts

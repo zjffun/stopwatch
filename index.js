@@ -1,192 +1,227 @@
-/* stopwatch2 version 0.0.5 */
+/* Stopwatch2 version 0.0.5 */
 (function (global, factory) {
-  typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-  typeof define === 'function' && define.amd ? define(factory) :
-  (global = global || self, global.stopwatch2 = factory());
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    (global = global || self, global.Stopwatch2 = factory());
 }(this, (function () { 'use strict';
 
-  // eslint-disable-next-line no-new-func
-  const isNode = new Function(
-    'try{return this===global;}catch(e){return false;}',
-  )();
-  // eslint-disable-next-line no-new-func
-  const isBrowser = new Function(
-    'try{return this===self;}catch(e){return false;}',
-  )();
-
-  let _performance = null;
-  let _global = null;
-
-  if (isNode) {
-    // let this require out of rollup control
-    _performance = eval('require("perf_hooks")').performance;
-    _global = global;
-  } else if (isBrowser) {
-    _performance = performance;
-    // eslint-disable-next-line no-restricted-globals
-    _global = window.self;
-  } else {
-    throw Error('unknow environment!');
-  }
-
-  const players = Symbol('players');
-
-  const states = {
-    start: Symbol('start'),
-    pause: Symbol('pause'),
-    stop: Symbol('stop'),
-  };
-
-  const prefix = {
-    start: 'sw2-start--',
-    stop: 'sw2-stop--',
-  };
-
-  const _config = {
-    print: true,
-  };
-
-  const stopwatch = {
-    [players]: {},
-
-    /**
-     * Start timing
-     * @param {String} tag tag
-     */
-    start(tag) {
-      if (!stopwatch[players][tag]) {
-        stopwatch[players][tag] = {
-          start: _performance.now(),
-          execTime: 0,
-          state: states.start,
-        };
-
-        if (isBrowser) {
-          _performance.mark(prefix.start + tag);
+    var isNode = new Function('try{return this===global;}catch(e){return false;}')();
+    var isBrowser = new Function('try{return this===self;}catch(e){return false;}')();
+    var _performance = null;
+    var _global = null;
+    if (isNode) {
+        _performance = eval('require("perf_hooks")').performance;
+        _global = global;
+    }
+    else if (isBrowser) {
+        _performance = performance;
+        _global = window.self;
+    }
+    else {
+        throw Error('unknow environment!');
+    }
+    var states = {
+        __proto__: null,
+        start: 'start',
+        pause: 'pause',
+        stop: 'stop'
+    };
+    var prefix = {
+        __proto__: null,
+        start: 'sw2-start--',
+        pause: 'sw2-pause--'
+    };
+    var stopwatches = Object.create(null);
+    function isPerformanceMeasureOn() {
+        return isBrowser && Stopwatch2.config.performanceMeasurement;
+    }
+    function sleep(ms) {
+        var start = _performance.now();
+        while (_performance.now() - start < ms) { }
+    }
+    var Stopwatch2 = (function () {
+        function Stopwatch2(tag) {
+            this.startTime = 0;
+            this.lastStartTime = 0;
+            this.execTime = 0;
+            this.lastExecTime = 0;
+            this.state = states.stop;
+            this.tag = tag;
+            this.stop();
+            stopwatches[tag] = this;
         }
+        Stopwatch2.prototype.start = function () {
+            var now = _performance.now();
+            switch (this.state) {
+                case states.start:
+                case states.pause:
+                    this.lastStartTime = now;
+                    break;
+                case states.stop:
+                default:
+                    this.startTime = now;
+                    this.lastStartTime = now;
+                    this.execTime = 0;
+                    this.lastExecTime = 0;
+                    break;
+            }
+            if (isPerformanceMeasureOn()) {
+                _performance.mark(prefix.start + this.tag);
+            }
+            this.state = states.start;
+            return this;
+        };
+        Stopwatch2.prototype.pause = function () {
+            switch (this.state) {
+                case states.start:
+                    var runTime = _performance.now() - this.lastStartTime;
+                    this.lastExecTime = runTime;
+                    this.execTime += runTime;
+                    this.state = states.pause;
+                    if (isPerformanceMeasureOn()) {
+                        _performance.mark(prefix.pause + this.tag);
+                        _performance.measure(this.tag, prefix.start + this.tag, prefix.pause + this.tag);
+                    }
+                    break;
+                case states.pause:
+                case states.stop:
+                default:
+                    break;
+            }
+            return this;
+        };
+        Stopwatch2.prototype.stop = function () {
+            switch (this.state) {
+                case states.start:
+                    this.pause();
+                    break;
+                case states.pause:
+                case states.stop:
+                default:
+                    break;
+            }
+            this.state = states.stop;
+            return this;
+        };
+        Stopwatch2.prototype.sleep = function (ms) {
+            sleep(ms);
+        };
+        Stopwatch2.prototype.toString = function () {
+            return this.tag + " -> exec: " + this.execTime + ", state: " + this.state + ", start: " + this.startTime + ", lexec: " + this.lastExecTime + ", lstart: " + this.lastStartTime;
+        };
+        Stopwatch2.start = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            Stopwatch2.create.apply(Stopwatch2, tags);
+            return Stopwatch2.getArray.apply(Stopwatch2, tags).map(function (p) { return p.start(); });
+        };
+        Stopwatch2.pause = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            return Stopwatch2.getArray.apply(Stopwatch2, tags).map(function (p) { return p.pause(); });
+        };
+        Stopwatch2.stop = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            return Stopwatch2.getArray.apply(Stopwatch2, tags).map(function (p) { return p.stop(); });
+        };
+        Stopwatch2.sleep = function (ms) {
+            sleep(ms);
+        };
+        Stopwatch2.toString = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            return Stopwatch2.getArray.apply(Stopwatch2, tags).map(function (d) { return d.toString(); })
+                .join('\n');
+        };
+        Stopwatch2.clear = function () {
+            stopwatches = Object.create(null);
+            if (isPerformanceMeasureOn()) {
+                _performance.clearMarks();
+                _performance.clearMeasures();
+            }
+            return true;
+        };
+        Stopwatch2.registerToGlobal = function (globalName) {
+            if (_global[globalName]) {
+                console.error("Name \"" + globalName + "\" already exist in global!");
+                return false;
+            }
+            _global[globalName] = Stopwatch2;
+            return true;
+        };
+        Stopwatch2.create = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            var result = [];
+            tags.forEach(function (tag) {
+                result.push(new Stopwatch2(tag));
+            });
+            return result;
+        };
+        Stopwatch2.getArray = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            if (tags.length === 0) {
+                return Object.values(stopwatches);
+            }
+            var result = [];
+            for (var tag in stopwatches) {
+                if (Object.prototype.hasOwnProperty.call(stopwatches, tag)) {
+                    var stopwatch = stopwatches[tag];
+                    if (tags.includes(tag)) {
+                        result.push(stopwatch);
+                    }
+                }
+            }
+            return result;
+        };
+        Stopwatch2.getOne = function (tag) {
+            var stopwatch = stopwatches[tag];
+            if (stopwatch) {
+                return stopwatch;
+            }
+            return null;
+        };
+        Stopwatch2.get = function () {
+            var tags = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                tags[_i] = arguments[_i];
+            }
+            if (tags.length === 0) {
+                return Object.assign({}, stopwatches);
+            }
+            var result = Object.create(null);
+            for (var tag in stopwatches) {
+                if (Object.prototype.hasOwnProperty.call(stopwatches, tag)) {
+                    var stopwatch = stopwatches[tag];
+                    if (tags.includes(tag)) {
+                        result[tag] = stopwatch;
+                    }
+                }
+            }
+            return result;
+        };
+        Stopwatch2.config = {
+            __proto__: null,
+            performanceMeasurement: false
+        };
+        Stopwatch2.states = states;
+        return Stopwatch2;
+    }());
 
-        return;
-      }
-      const player = stopwatch[players][tag];
-
-      if (player.state === states.stop) {
-        player.execTime = 0;
-      }
-      player.start = _performance.now();
-
-      player.state = states.start;
-    },
-
-    /**
-     * Pause timing
-     * @param {String} tag tag
-     * @returns {Number} run time
-     */
-    pause(tag) {
-      if (!stopwatch[players][tag]) {
-        console.error(`"${tag}" does not exist`);
-        return -1;
-      }
-
-      const player = stopwatch[players][tag];
-
-      let runTime = 0;
-      if (player.state === states.start) {
-        runTime = _performance.now() - player.start;
-        player.execTime += runTime;
-      }
-      player.state = states.pause;
-
-      return runTime;
-    },
-
-    /**
-     * Stop timing
-     * @param {String} tag tag
-     * @returns {Object} timer
-     */
-    stop(tag) {
-      if (!stopwatch[players][tag]) {
-        console.error(`"${tag}" does not exist`);
-        return -1;
-      }
-
-      const player = stopwatch[players][tag];
-      stopwatch.pause(tag);
-      player.state = states.stop;
-
-      if (isBrowser) {
-        _performance.mark(prefix.stop + tag);
-        _performance.measure(tag, prefix.start + tag, prefix.stop + tag);
-      }
-
-      _config.print && console.log(`${tag}: ${player.execTime}ms`);
-      return { ...player };
-    },
-
-    /**
-     * Suspends the execution
-     * @param {Number} ms Number of millisecond
-     */
-    sleep(ms) {
-      const start = Date.now();
-      // eslint-disable-next-line no-empty
-      while (Date.now() - start < ms) {}
-    },
-
-    /**
-     * Show palyer(s)
-     * @param {String} [tag] tag
-     * @returns {(Object|Array[Object])} palyer(s)
-     */
-    show(tag) {
-      let showingTimer = stopwatch[players];
-
-      if (tag) {
-        showingTimer = stopwatch[players][tag];
-      }
-
-      const report = JSON.stringify(showingTimer, null, 2);
-      const copy = JSON.parse(report);
-      _config.print && console.log(report);
-      return copy;
-    },
-
-    /**
-     * Clear all palyers
-     * @returns {Boolean} success
-     */
-    clear() {
-      stopwatch[players] = {};
-
-      if (isBrowser) {
-        _performance.clearMarks();
-        _performance.clearMeasures();
-      }
-
-      return true;
-    },
-
-    /**
-     * Register the stopwatch2 to global with the given name.
-     * @param {String} globalName global name
-     * @returns {Boolean} success
-     */
-    registerToGlobal(globalName) {
-      if (_global[globalName]) {
-        console.error(`"${globalName}" already exist in global!`);
-        return false;
-      }
-      _global[globalName] = stopwatch;
-      return true;
-    },
-
-    /**
-     * config object
-     */
-    config: _config,
-  };
-
-  return stopwatch;
+    return Stopwatch2;
 
 })));
