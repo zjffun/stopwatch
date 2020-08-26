@@ -1,11 +1,10 @@
-// eslint-disable-next-line no-new-func
-const isNode = new Function(
-  'try{return this===global;}catch(e){return false;}',
-)();
-// eslint-disable-next-line no-new-func
-const isBrowser = new Function(
-  'try{return this===self;}catch(e){return false;}',
-)();
+const isBrowser =
+  typeof window !== 'undefined' && typeof window.document !== 'undefined';
+
+const isNode =
+  typeof process !== 'undefined' &&
+  process.versions != null &&
+  process.versions.node != null;
 
 let _performance: any = null;
 let _global: any = null;

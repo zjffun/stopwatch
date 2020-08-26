@@ -5,10 +5,10 @@
     (global = global || self, global.Stopwatch2 = factory());
 }(this, (function () { 'use strict';
 
-    // eslint-disable-next-line no-new-func
-    var isNode = new Function('try{return this===global;}catch(e){return false;}')();
-    // eslint-disable-next-line no-new-func
-    var isBrowser = new Function('try{return this===self;}catch(e){return false;}')();
+    var isBrowser = typeof window !== 'undefined' && typeof window.document !== 'undefined';
+    var isNode = typeof process !== 'undefined' &&
+        process.versions != null &&
+        process.versions.node != null;
     var _performance = null;
     var _global = null;
     if (isNode) {
