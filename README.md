@@ -188,6 +188,10 @@ push -> exec: 20.203357875347137, state: pause, start: 71.1270010471344, lexec: 
 
 ## Release History
 
+### 0.0.7
+
+- fix the environment detection
+
 ### 0.0.6
 
 - redesign API
