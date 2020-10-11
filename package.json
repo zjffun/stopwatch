@@ -9,7 +9,8 @@
     "dev": "make dev",
     "build": "make build",
     "lint": "make lint",
-    "test": "make tests"
+    "test": "make tests",
+    "test-ci": "make testsCI"
   },
   "files": [
     "index.js",

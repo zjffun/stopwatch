@@ -20,6 +20,10 @@ tests:
 	npx mocha
 	npx karma start --single-run
 
+testsCI:
+	npx mocha
+	npx karma start --single-run --browsers ChromeHeadless
+
 lint:
 	npx eslint **/*.js
 
