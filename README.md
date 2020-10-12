@@ -1,5 +1,6 @@
 [![jsdelivr][jsdelivr-badge]][jsdelivr-link]
 [![npm version][fury-badge]][fury-link]
+[![test CI][test-badge]][test-link]
 
 # stopwatch2
 
@@ -200,3 +201,5 @@ push -> exec: 20.203357875347137, state: pause, start: 71.1270010471344, lexec: 
 [fury-badge]: https://badge.fury.io/js/stopwatch2.svg
 [jsdelivr-link]: https://www.jsdelivr.com/package/npm/stopwatch2
 [jsdelivr-badge]: https://data.jsdelivr.com/v1/package/npm/stopwatch2/badge
+[test-badge]: https://github.com/zjffun/stopwatch2/workflows/test%20CI/badge.svg
+[test-link]: https://github.com/zjffun/stopwatch2/actions
