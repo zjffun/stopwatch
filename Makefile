@@ -1,5 +1,4 @@
-prepublishOnly:
-	make build
+prepublishOnly: build
 	# check uncommit changes
 	[[ -z `git status --porcelain` ]]
 	make lint
@@ -21,13 +20,14 @@ tests:
 	npx karma start --single-run
 
 testsCI:
-	npx mocha
+	npx nyc --reporter=lcov mocha
 	npx karma start --single-run --browsers ChromeHeadless
+	npx codecov
 
 lint:
 	npx eslint **/*.js
 
 generateTypeDefinitions:
 	# https://github.com/rollup/plugins/issues/394
-	tsc -d --emitDeclarationOnly
+	npx tsc -d --emitDeclarationOnly
 	mv ./src/stopwatch.d.ts ./index.d.ts
