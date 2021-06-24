@@ -25,7 +25,7 @@ npm install stopwatch2
 
 `Stopwatch2` exposes a class simply call `start`, `pause`, `stop` and etc. methods on it's instance or itself to measure the runtime of code.
 
-ES6 Modules:
+ES modules:
 
 ```js
 import Stopwatch2 from 'stopwatch2';
@@ -46,7 +46,7 @@ console.table(sw);
 console.table(Stopwatch2.get());
 ```
 
-CMD:
+CommonJS:
 
 ```js
 const Stopwatch2 = require('stopwatch2');
